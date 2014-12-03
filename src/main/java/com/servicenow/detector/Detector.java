@@ -29,7 +29,7 @@ public class Detector {
         
         //Split by pattern
         List<ForkJoinTask<List<MatchResult>>> tasks = new ArrayList<>();
-        final ForkJoinPool fjPool = new ForkJoinPool(); //TODO check this
+        final ForkJoinPool fjPool = new ForkJoinPool(); //TODO check this new comment
         for (final ByteImage image : images) {
             for (final ByteImage pattern : patterns) {
                 for (int i = 0; i < 8; i++) {
