@@ -1,94 +1,87 @@
 package com.servicenow.detector;
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-public class TestDetector {
-    private static ByteImage pattern1 = getBytePattern("pattern1",
-            "+++" + "\n" +
-            "+ +" + "\n" +
-            "+++" + "\n" +
-            "+ +" + "\n" +
-            "+++" + "\n");
-    
-    private static ByteImage pattern2 = getBytePattern("pattern2",
+public class TestDetector {   
+    private static BytePattern pattern2 = TestUtil.getBytePattern("pattern2",
             "+   +" + "\n" +
             " + + " + "\n" +
-            " +++ " + "\n" +
+            " + + " + "\n" +
             " + + " + "\n" +
             "+   +" + "\n");
     
-    private static ByteImage image1 = getByteImage("Image1",
-            "               " + "\n" +
-            "        +   +  " + "\n" +
-            "         + +   " + "\n" +
-            "         +++   " + "\n" +
-            "         + +   " + "\n" +
-            "        +   +  " + "\n" +
-            "               " + "\n");
+    private static ByteImage image1 = TestUtil.getByteImage("Image1",
+            " +              " + "\n" +
+            "+   +    +   +  " + "\n" +
+            "+    +    + +   " + "\n" +
+            "+    +    + +   " + "\n" +
+            " +   +    + +   " + "\n" +
+            "    +    +   +  " + "\n" +
+            "  +   +         " + "\n" +
+            "   + +          " + "\n" +
+            "   + +          " + "\n");
     
-//    @Test
-    public void testName() throws Exception {
-       Map<Image, List<MatchResult>> result = Detector.detect(Arrays.asList(pattern2), Arrays.asList(image1), 90);
-       for (Image image : result.keySet()) {
-           System.out.println(image.getName() + " match " + result.get(image).size());
-       }
-    }
-    
-    public static void main(String[] args) {
-        Map<Image, List<MatchResult>> result = Detector.detect(Arrays.asList(pattern1), Arrays.asList(image1), 90);
-        for (Image image : result.keySet()) {
-            System.out.println(image.getName() + " match " + result.get(image).size());
-        }
-    }
-    
-    private static ByteImage getBytePattern(String name, String image) {
-        try {
-            return ByteImage.fromReader(new InputStreamReader(new ByteArrayInputStream(image.getBytes())), name, '+', 'x', ' ');
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
-    }
-    private static ByteImage getByteImage(String name, String image) {
-        try {
-            return ByteImage.fromReader(new InputStreamReader(new ByteArrayInputStream(image.getBytes())), name, '+', ' ', 'x');
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
-    }
-    
+    @SuppressWarnings("static-method")
     @Test
-    public void testName2() throws Exception {
-        for (int y = 0; y < image1.getLineCount(); y++) {
-            for (int x = 0; x < image1.getByteLineLength(); x++) {
-                final int dist = BitUtil.hammingDistance2D(pattern2.getData(), pattern2.getMask(), image1.getData(), image1.getMask(), x, y, 50);
-                System.out.println("X="+x + " Y=" + y + " Dist=" + (100 - dist*100/pattern2.getNonMaskChars()) + "   (" + (pattern2.getNonMaskChars()-dist) + "/" +pattern2.getNonMaskChars()+")");
+    public void testSingleMatch() throws Exception {
+       Map<BinaryCharImage, List<MatchResult>> result = Detector.detect(Arrays.asList(image1), Arrays.asList(pattern2), 90,0);
+       
+       Assert.assertEquals(1, result.size());              //1 key returned
+       Assert.assertEquals(1, result.get(image1).size());  //1 match
+       
+       Set<TestMatchResult> expected = new HashSet<>();
+       expected.add(new TestMatchResult(image1, pattern2.getByteImage(), 9, 1, 100));
+       
+       Assert.assertTrue(containAll(expected, result));
+    }
+    
+    @SuppressWarnings("static-method")
+    @Test
+    public void testMulti50() throws Exception {   
+       Map<BinaryCharImage, List<MatchResult>> result = Detector.detect(Arrays.asList(image1), Arrays.asList(pattern2), 50, 0);
+       
+//       for (BinaryCharImage image : result.keySet()) {
+//           System.out.println(image.getName() + " match " + result.get(image).size());
+//           for (MatchResult mr : result.get(image)) {
+//               System.out.println("Match " + mr.getPercentage() + "% at X=" + mr.getOffsetX() + ", Y=" + mr.getOffsetY());
+//           }
+//       }
+       
+       Assert.assertEquals(1, result.size());              //1 key returned
+       Assert.assertEquals(5, result.get(image1).size());  //5 match
+       
+       Set<TestMatchResult> expected = new HashSet<>();
+       expected.add(new TestMatchResult(image1, pattern2.getByteImage(), 9, 1, 100));
+       expected.add(new TestMatchResult(image1, pattern2.getByteImage(), 1, 4, 50));
+       expected.add(new TestMatchResult(image1, pattern2.getByteImage(), 2, 6, 60));
+       expected.add(new TestMatchResult(image1, pattern2.getByteImage(), 4, 1, 50));
+       expected.add(new TestMatchResult(image1, pattern2.getByteImage(), -3, 0, 50));
+       
+       Assert.assertTrue(containAll(expected, result));
+    }
+    
+    private static boolean containAll(Set<TestMatchResult> lookFor, Map<BinaryCharImage, List<MatchResult>> result) {
+        for (List<MatchResult> results : result.values()) {
+            for (MatchResult matchResult : results) {
+                boolean found = false;
+                for (Iterator<TestMatchResult> iter = lookFor.iterator();iter.hasNext();){
+                    TestMatchResult t = iter.next();
+                    if (t.equalsResult(matchResult)) {
+                        iter.remove();
+                        found = true;
+                    }
+                }
+                if (!found) return false;
             }
         }
+        return lookFor.isEmpty();
     }
-    
-    
-    
-    
-    
-    
 }

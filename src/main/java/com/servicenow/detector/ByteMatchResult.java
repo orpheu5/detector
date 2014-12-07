@@ -18,12 +18,12 @@ public class ByteMatchResult implements MatchResult {
     }
     
     @Override
-    public Image getImage() {
+    public BinaryCharImage getImage() {
         return image;
     }
 
     @Override
-    public Image getPattern() {
+    public BinaryCharImage getPattern() {
         return pattern;
     }
 
@@ -39,7 +39,7 @@ public class ByteMatchResult implements MatchResult {
 
     @Override
     public int getPercentage() {
-        return (pattern.getNonMaskChars() - hamDist) * 100 / pattern.getNonMaskChars();
+        return (pattern.getMaskSize() - hamDist) * 100 / pattern.getMaskSize();
     }
 
 }

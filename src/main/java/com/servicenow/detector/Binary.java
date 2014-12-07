@@ -1,7 +1,7 @@
-package com.servicenow.detectordetector;
+package com.servicenow.detector;
 
-public class Hex {
-    public static String toBinary(byte[] bytes){
+public class Binary {
+    public static String bytesToString(byte[] bytes){
         StringBuilder sb = new StringBuilder(bytes.length * Byte.SIZE);
         for( int i = 0; i < Byte.SIZE * bytes.length; i++ ) {
             if (i > 0 && (i % Byte.SIZE == 0)) sb.append(" ");
@@ -10,7 +10,7 @@ public class Hex {
         return sb.toString();
     }
     
-    public static byte[] fromBinaryString(String s){
+    public static byte[] bytesFromString(String s){
         s= s.replaceAll(" ", "");
         int sLen = s.length();
         byte[] toReturn = new byte[(sLen + Byte.SIZE - 1) / Byte.SIZE];
