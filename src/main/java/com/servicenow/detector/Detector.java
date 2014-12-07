@@ -30,25 +30,25 @@ public class Detector {
         //Split by pattern
         List<ForkJoinTask<List<MatchResult>>> tasks = new ArrayList<>();
         final ForkJoinPool fjPool = new ForkJoinPool(); //TODO check this new comment
-        for (final ByteImage image : images) {
-            for (final ByteImage pattern : patterns) {
-                for (int i = 0; i < 8; i++) {
-                    final byte[][] shiftedPattern = BitUtil.shift2D(pattern.getData(), i);
-                    final byte[][] shiftedMask = BitUtil.shift2D(pattern.getMask(), i);
+        for (final ByteImage pattern : patterns) {
+            for (int i = 0; i < 8; i++) {
+                final byte[][] shiftedPattern = BitUtil.shift2D(pattern.getData(), i);
+                final byte[][] shiftedMask = BitUtil.shift2D(pattern.getMask(), i);
+                for (final ByteImage image : images) {
                     final int startXOffset = - pattern.getByteLineLength() * (100-threshold) / 100;
                     final int startYOffset = - pattern.getLineCount() * (100-threshold) / 100;
                     final int distThreshold = pattern.getNonMaskChars() * (100-threshold) / 100;
                     final int patternShift = i;
                     tasks.add(fjPool.submit(() -> {
-                            final List<MatchResult> results = new ArrayList<>();
-                            for (int y = startYOffset; y < image.getLineCount(); y++) {
-                                for (int x = startXOffset; x < image.getByteLineLength(); x++) {
-                                    final int dist = BitUtil.hammingDistance2D(shiftedPattern, shiftedMask, image.getData(), image.getMask(), x, y, distThreshold);
-                                    if (dist < distThreshold) results.add(new ByteMatchResult(image, pattern, patternShift, x, y, dist));
-                                }
+                        final List<MatchResult> results = new ArrayList<>();
+                        for (int y = startYOffset; y < image.getLineCount(); y++) {
+                            for (int x = startXOffset; x < image.getByteLineLength(); x++) {
+                                final int dist = BitUtil.hammingDistance2D(shiftedPattern, shiftedMask, image.getData(), image.getMask(), x, y, distThreshold);
+                                if (dist < distThreshold) results.add(new ByteMatchResult(image, pattern, patternShift, x, y, dist));
                             }
-                            return results;
-                        }));
+                        }
+                        return results;
+                    }));
                 }
             }
         }

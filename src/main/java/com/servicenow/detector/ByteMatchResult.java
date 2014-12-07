@@ -39,7 +39,7 @@ public class ByteMatchResult implements MatchResult {
 
     @Override
     public int getPercentage() {
-        return hamDist;
+        return (pattern.getNonMaskChars() - hamDist) * 100 / pattern.getNonMaskChars();
     }
 
 }

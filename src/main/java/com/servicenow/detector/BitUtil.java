@@ -23,10 +23,12 @@ public class BitUtil {
 //    }
     
     public static int hammingDistance2D(byte[][] pattern, byte[][] patternMask, byte[][] text, byte[][] textMask, int xOffset, int yOffset, int maxDist){
+        
+        
         int dist = 0;
         for (int i = 0; i < pattern.length; i++) {
             if (i + yOffset < 0 || i + yOffset >= text.length)
-                dist = bitCount(patternMask[i]);
+                dist += bitCount(patternMask[i]);
             else 
                 dist += hammingDistance1D(pattern[i], patternMask[i], text[i + yOffset], textMask[i + yOffset], xOffset);
             
@@ -41,7 +43,7 @@ public class BitUtil {
         return c;
     }
 
-    private static int hammingDistance1D(byte[] pattern, byte[] patternMask, byte[] text, byte[] textMask, int textOffset) {
+    protected static int hammingDistance1D(byte[] pattern, byte[] patternMask, byte[] text, byte[] textMask, int textOffset) {
         int dist = 0;
         int[] r = new int[pattern.length];
         for (int i = 0; i < pattern.length; i++) {
@@ -49,7 +51,11 @@ public class BitUtil {
             if (i + textOffset < 0 || i + textOffset >= text.length)
                 r[i] = Integer.bitCount(0xFF & patternMask[i]);
             else 
-                r[i] = BYTE_POPCOUNT[(pattern[i] ^ text[i + textOffset]) & patternMask[i] & textMask[i + textOffset] & 0xFF];
+                r[i] = BYTE_POPCOUNT[(
+                        (pattern[i] ^ text[i + textOffset])           //XOR pattern and text to get Hamming distance
+                        & patternMask[i]                              //XOR is masked with pattern mask so only bits inside pattern mask contribute to distance
+                        | ~textMask[i + textOffset] & patternMask[i]  //Override (OR) if bits fall outside text mask, then only look at pattern mask, actual pattern bits doesn't matter
+                        ) & 0xFF];                                    //Only use least significant 8 bits                      
             
             dist += r[i];
         }

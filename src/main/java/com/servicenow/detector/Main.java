@@ -10,15 +10,24 @@ import com.servicenow.detector.terminalgui.TerminalGUI;
 
 public class Main {
     private static final char one =  '+';
-    private static final char zero = ' ';
-    private static final char mask = 'x';
+    private static final char zero = 'x';
+    private static final char mask = ' ';
     
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         String imageDir = args[0];
         String patternDir = args[1];
         int threshold = 50;
         
-        final Map<Image, List<MatchResult>> results = Detector.detect(getFiles(imageDir), getFiles(patternDir), one, zero, mask, threshold);
+        final List<ByteImage> patterns = new ArrayList<>();
+        final List<ByteImage> images = new ArrayList<>();
+        for (File f : getFiles(imageDir)) {
+            images.add(ByteImage.fromFile(f, '+', ' ', 'x'));
+        }
+        for (File f : getFiles(patternDir)) {
+            patterns.add(ByteImage.fromFile(f, '+', 'x', ' '));
+        }
+        
+        final Map<Image, List<MatchResult>> results = Detector.detect(patterns, images, threshold);
         new TerminalGUI().show(results);
     }
 

@@ -1,4 +1,4 @@
-package com.cr.detector;
+package com.servicenow.detectordetector;
 
 public class Hex {
     public static String toBinary(byte[] bytes){
