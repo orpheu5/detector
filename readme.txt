@@ -32,4 +32,4 @@ This project can be used as internal library by calling the Detector class retur
 
 It can also be called from the command line in which case the a Terminal GUI will show the matches superimposed on the images. Please note the terminalGUI has only been tested with windows.
 
-$> java -jar BliffoscopeDetector.jar <imageDir> <patternDir> <threshold>
+$> java -jar Detector-1.0-jar-with-dependencies.jar <imageDir> <patternDir> <threshold>

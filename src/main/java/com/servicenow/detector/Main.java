@@ -18,19 +18,27 @@ public class Main {
         String imageDir = null;
         String patternDir = null;
         int threshold = 0;
-        
+        List<File> images = null;
+        List<File> patterns = null;
         try{
             if (args.length != 3) usage("incorrect number of arguments");
             imageDir = args[0];
             patternDir = args[1];
-            threshold = Integer.parseInt(args[2]);
+            try{
+                threshold = Integer.parseInt(args[2]);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid threshold " + args[2]);
+            }
+            
+            images = getFiles(imageDir);
+            patterns = getFiles(patternDir);
         } catch (Exception e) {
             usage(e.getMessage());
         }
         
         final Map<BinaryCharImage, List<MatchResult>> results = Detector.detect(
-                getFiles(imageDir), 
-                getFiles(patternDir),
+                images, 
+                patterns,
                 one,
                 threshold);
         
@@ -52,12 +60,15 @@ public class Main {
         System.exit(1);
     }
 
-    private static List<File> getFiles(String imageDir) {
+    private static List<File> getFiles(String dirPath) {
         List<File> l = new ArrayList<File>();
-        for (File file : new File(imageDir).listFiles()) {
+        File dir = new File(dirPath);
+        if (!dir.exists() || !dir.isDirectory()) throw new IllegalArgumentException("Invalid directory "  + dirPath);
+        
+        for (File file : dir.listFiles()) {
             l.add(file);
         }
-        if (l.isEmpty()) throw new IllegalArgumentException("Directory "  + imageDir + " is empty");
+        if (l.isEmpty()) throw new IllegalArgumentException("Directory "  + dirPath + " is empty");
         return l;
     }
 }
